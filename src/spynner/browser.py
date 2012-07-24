@@ -32,8 +32,8 @@ from io import StringIO
 
 import pkg_resources
 
-from PyQt4.QtCore import SIGNAL, QUrl, QString, Qt, QEvent
-from PyQt4.QtCore import QSize, QDateTime, QPoint
+from PyQt4 import QtCore
+from PyQt4.QtCore import Qt, QEvent, QSize, QDateTime, QPoint
 from PyQt4.QtGui import QApplication, QImage, QPainter
 from PyQt4.QtGui import QCursor, QMouseEvent, QKeyEvent
 from PyQt4.QtNetwork import QNetworkCookie, QNetworkAccessManager
@@ -156,13 +156,13 @@ class Browser(object):
         """PyQt4.QtNetwork.QNetworkCookieJar object."""
         self.manager.setCookieJar(self.cookiesjar)
         self.manager.connect(self.manager,
-            SIGNAL("sslErrors(QNetworkReply *, const QList<QSslError> &)"),
+            QtCore.SIGNAL("sslErrors(QNetworkReply *, const QList<QSslError> &)"),
             self._on_manager_ssl_errors)
         self.manager.connect(self.manager,
-            SIGNAL('finished(QNetworkReply *)'),
+            QtCore.SIGNAL('finished(QNetworkReply *)'),
             self._on_reply)
         self.manager.connect(self.manager,
-            SIGNAL('authenticationRequired(QNetworkReply *, QAuthenticator *)'),
+            QtCore.SIGNAL('authenticationRequired(QNetworkReply *, QAuthenticator *)'),
             self._on_authentication_required)
         self._operation_names = dict(
             (getattr(QNetworkAccessManager, s + "Operation"), s.lower())
@@ -173,13 +173,13 @@ class Browser(object):
         self._replies = 0
         self.webpage.setForwardUnsupportedContent(True)
         self.webpage.connect(self.webpage,
-            SIGNAL('unsupportedContent(QNetworkReply *)'),
+            QtCore.SIGNAL('unsupportedContent(QNetworkReply *)'),
             self._on_unsupported_content)
         self.webpage.connect(self.webpage,
-            SIGNAL('loadFinished(bool)'),
+            QtCore.SIGNAL('loadFinished(bool)'),
             self._on_load_finished)
         self.webpage.connect(self.webpage,
-            SIGNAL("loadStarted()"),
+            QtCore.SIGNAL("loadStarted()"),
             self._on_load_started)
 
     def _events_loop(self, wait=None):
@@ -226,7 +226,7 @@ class Browser(object):
         if self._url_filter:
             if self._url_filter(self._operation_names[operation], url) is False:
                 self._debug(INFO, "URL filtered: %s" % url)
-                request.setUrl(QUrl("about:blank"))
+                request.setUrl(QtCore.QUrl("about:blank"))
             else:
                 self._debug(DEBUG, "URL not filtered: %s" % url)
         reply = QNetworkAccessManager.createRequest(self.manager,
@@ -347,9 +347,9 @@ class Browser(object):
             self._debug(INFO, "Download finished: %s" % url)
         if path is not None:
             self.files.append((path, {'reply':reply,'finished':False,}))
-        reply.connect(reply, SIGNAL("readyRead()"), _on_ready_read)
-        reply.connect(reply, SIGNAL("NetworkError()"), _on_network_error)
-        reply.connect(reply, SIGNAL("finished()"), _on_finished)
+        reply.connect(reply, QtCore.SIGNAL("readyRead()"), _on_ready_read)
+        reply.connect(reply, QtCore.SIGNAL("NetworkError()"), _on_network_error)
+        reply.connect(reply, QtCore.SIGNAL("finished()"), _on_finished)
         self._debug(INFO, "Start download: %s" % url)
 
     def _wait_load(self, timeout=None):
@@ -385,7 +385,7 @@ class Browser(object):
         if res.type() != res.Map:
             return False
         resmap = res.toMap()
-        lenfield = QString('length')
+        lenfield = QtCore.QString('length')
         if lenfield not in resmap:
             return False
         return resmap[lenfield].toInt()[0]
@@ -426,7 +426,7 @@ class Browser(object):
 
     def load(self, url):
         """Load a web page and return status (a boolean)."""
-        self.webframe.load(QUrl(url))
+        self.webframe.load(QtCore.QUrl(url))
         return self._wait_load()
 
     def is_jquery_loaded(self):
@@ -505,7 +505,8 @@ class Browser(object):
         """
         element = self.webframe.findFirstElement(selector)
         element.setFocus()
-        eventp = QKeyEvent(QEvent.KeyPress, Qt.Key_A, keyboard_modifiers, QString(text))
+        eventp = QKeyEvent(QEvent.KeyPress, Qt.Key_A, keyboard_modifiers,
+                QtCore.QString(text))
         self.application.sendEvent(self.webview, eventp)
         self._events_loop(timeout)
         self.wait_requests(wait_requests)
@@ -890,7 +891,7 @@ class Browser(object):
         self.webview.setPage(self.webpage)
         window = self.webview.window()
         window.setAttribute(Qt.WA_DeleteOnClose)
-        window.connect(window, SIGNAL('destroyed(QObject *)'),
+        window.connect(window, QtCore.SIGNAL('destroyed(QObject *)'),
             self._on_webview_destroyed)
         if show:
             self.show()
@@ -1159,7 +1160,7 @@ class Browser(object):
         self._download_reply_status = None
         if not urllib.parse.urlsplit(url).scheme:
             url = urllib.parse.urljoin(self.url, url)
-        request = QNetworkRequest(QUrl(url))
+        request = QNetworkRequest(QtCore.QUrl(url))
         # Create a new manager to process this download
         manager = QNetworkAccessManager()
         # create a copy of the cookies jar to prevent
@@ -1171,7 +1172,7 @@ class Browser(object):
         if reply.error():
             raise SpynnerError("Download error: %s" % reply.errorString())
         reply.downloaded_nbytes = 0
-        manager.connect(manager, SIGNAL('finished(QNetworkReply *)'), _on_reply)
+        manager.connect(manager, QtCore.SIGNAL('finished(QNetworkReply *)'), _on_reply)
         outfd_set = bool(outfd)
         if not outfd_set:
             outfd = StringIO()
