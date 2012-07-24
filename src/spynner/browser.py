@@ -744,6 +744,7 @@ class Browser(object):
         where = self.getPosition(selector)
         item = self.webframe.findFirstElement(selector)
         item.setFocus()
+        import pdb;pdb.set_trace()  ## Breakpoint ##
         where = QPoint(where.x() + offsetx, where.y() + offsety)
         self.nativeClickAt(where, timeout, real=True)
         self.wait_requests(wait_requests)
