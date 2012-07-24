@@ -20,7 +20,7 @@ import sys
 import signal
 import unittest
 import threading
-from StringIO import StringIO
+from io import StringIO
 
 import spynner
 import webserver

@@ -20,15 +20,15 @@ Javascript/AJAX support. It is build upon the PyQtWebKit framework.
 """
 
 import itertools
-import cookielib
+import http.cookiejar
 import tempfile
-import urlparse
-import urllib2
+import urllib.parse
+import urllib.request, urllib.error, urllib.parse
 import time
 import sys
 import re
 import os
-from StringIO import StringIO
+from io import StringIO
 
 import pkg_resources
 
@@ -41,7 +41,7 @@ from PyQt4.QtNetwork import QNetworkCookieJar, QNetworkRequest, QNetworkProxy
 from PyQt4.QtWebKit import QWebPage, QWebView
 
 # Debug levels
-ERROR, WARNING, INFO, DEBUG = range(4)
+ERROR, WARNING, INFO, DEBUG = list(range(4))
 
 class Browser(object):
     """
@@ -193,7 +193,7 @@ class Browser(object):
         self._debug(INFO, "Page load started")
 
     def _on_manager_ssl_errors(self, reply, errors):
-        url = unicode(reply.url().toString())
+        url = str(reply.url().toString())
         if self.ignore_ssl_errors:
             self._debug(WARNING, "SSL certificate error ignored: %s" % url)
             reply.ignoreSslErrors()
@@ -201,8 +201,8 @@ class Browser(object):
             self._debug(WARNING, "SSL certificate error: %s" % url)
 
     def _on_authentication_required(self, reply, authenticator):
-        url = unicode(reply.url().toString())
-        realm = unicode(authenticator.realm())
+        url = str(reply.url().toString())
+        realm = str(authenticator.realm())
         self._debug("HTTP auth required: %s (realm: %s)" % (url, realm))
         if not self._http_authentication_callback:
             self._debug(WARNING, "HTTP auth required, but no callback defined")
@@ -218,7 +218,7 @@ class Browser(object):
             self._debug(WARNING, "HTTP auth callback returned no credentials")
 
     def _manager_create_request(self, operation, request, data):
-        url = unicode(request.url().toString())
+        url = str(request.url().toString())
         operation_name = self._operation_names[operation].upper()
         self._debug(INFO, "Request: %s %s" % (operation_name, url))
         for h in request.rawHeaderList():
@@ -235,7 +235,7 @@ class Browser(object):
 
     def _on_reply(self, reply):
         self._replies += 1
-        self._reply_url = unicode(reply.url().toString())
+        self._reply_url = str(reply.url().toString())
         self._reply_status = not bool(reply.error())
 
         if reply.error():
@@ -267,7 +267,7 @@ class Browser(object):
             self._debug(INFO, "Javascript console: %s" % message)
 
     def _javascript_confirm(self, webframe, message):
-        smessage = unicode(message)
+        smessage = str(message)
         url = webframe.url()
         self._debug(INFO, "Javascript confirm (webframe url = %s): %s" %
             (url, smessage))
@@ -279,7 +279,7 @@ class Browser(object):
 
     def _javascript_prompt(self, webframe, message, defaultvalue, result):
         url = webframe.url()
-        smessage = unicode(message)
+        smessage = str(message)
         self._debug(INFO, "Javascript prompt (webframe url = %s): %s" %
             (url, smessage))
         if self._javascript_prompt_callback:
@@ -304,7 +304,7 @@ class Browser(object):
             (len(self.html), self.url, status))
 
     def _get_filepath_for_url(self, url, reply=None):
-        urlinfo = urlparse.urlsplit(url)
+        urlinfo = urllib.parse.urlsplit(url)
         path = os.path.join(os.path.abspath(self.download_directory), urlinfo.netloc)
         if urlinfo.path != '/':
             p = urlinfo.path
@@ -325,7 +325,7 @@ class Browser(object):
         return path
 
     def _start_download(self, reply, outfd):
-        url = unicode(reply.url().toString())
+        url = str(reply.url().toString())
         path = None
         if outfd is None:
             path = self._get_filepath_for_url(url, reply)
@@ -385,7 +385,7 @@ class Browser(object):
         if res.type() != res.Map:
             return False
         resmap = res.toMap()
-        lenfield = QString(u'length')
+        lenfield = QString('length')
         if lenfield not in resmap:
             return False
         return resmap[lenfield].toInt()[0]
@@ -401,7 +401,7 @@ class Browser(object):
         return res
 
     def _get_html(self):
-        return unicode(self.webframe.toHtml())
+        return str(self.webframe.toHtml())
 
     def _get_soup(self):
         if not self._html_parser:
@@ -409,7 +409,7 @@ class Browser(object):
         return self._html_parser(self.html)
 
     def _get_url(self):
-        return unicode(self.webframe.url().toString())
+        return str(self.webframe.url().toString())
 
     # Properties
 
@@ -470,7 +470,7 @@ class Browser(object):
     def wait_a_little(br, timeout):
         try:
             br.wait_load(timeout)
-        except SpynnerTimeout, e:
+        except SpynnerTimeout as e:
             pass
 
     def wait_requests(self, wait_requests = None, url = None, url_regex = None):
@@ -627,7 +627,7 @@ class Browser(object):
             where = self.webview.mapToGlobal(twhere)
             if where == twhere:
                 where = self.webview.mapToGlobal(where)
-        except Exception, e:
+        except Exception as e:
             #try also using qt
             try:
                 item = self.webframe.findFirstElement(selector)
@@ -817,14 +817,14 @@ class Browser(object):
                     try:
                         loaded = self._wait_load(timeout=delay)
                         self._debug(DEBUG, 'content loaded, waiting for content to mach the callback')
-                    except SpynnerTimeout, e:
+                    except SpynnerTimeout as e:
                         self._debug(DEBUG, 'content not loaded, fallback by waiting')
                 else:
                     time.sleep(delay)
         if not found:
-            msg = u"Timeout reached: %d retries for %s delay." % (tries, delay)
+            msg = "Timeout reached: %d retries for %s delay." % (tries, delay)
             if error_message:
-                msg += u'\n%s' % error_message
+                msg += '\n%s' % error_message
             raise SpynnerTimeout(msg)
         load_status = self._load_status
         self._load_status = None
@@ -1113,7 +1113,7 @@ class Browser(object):
 
     def set_proxy(self, string_proxy):
         """Set proxy [http|socks5]://username:password@hostname:port"""
-        urlinfo = urlparse.urlparse(string_proxy)
+        urlinfo = urllib.parse.urlparse(string_proxy)
 
         proxy = QNetworkProxy()
         if urlinfo.scheme == 'socks5' :
@@ -1154,11 +1154,11 @@ class Browser(object):
         @note: If url is a path, the current base URL will be pre-appended.
         """
         def _on_reply(reply):
-            url = unicode(reply.url().toString())
+            url = str(reply.url().toString())
             self._download_reply_status = not bool(reply.error())
         self._download_reply_status = None
-        if not urlparse.urlsplit(url).scheme:
-            url = urlparse.urljoin(self.url, url)
+        if not urllib.parse.urlsplit(url).scheme:
+            url = urllib.parse.urljoin(self.url, url)
         request = QNetworkRequest(QUrl(url))
         # Create a new manager to process this download
         manager = QNetworkAccessManager()
@@ -1257,7 +1257,7 @@ class Browser(object):
 
     def get_url_from_path(self, path):
         """Return the URL for a given path using the current URL as base."""
-        return urlparse.urljoin(self.url, path)
+        return urllib.parse.urljoin(self.url, path)
 
     def set_url_filter(self, url_filter):
         """
@@ -1288,7 +1288,7 @@ def _first(iterable, pred=bool):
 
 def _debug(obj, linefeed=True, outfd=sys.stderr, outputencoding="utf8"):
     """Print a debug info line to stream channel"""
-    if isinstance(obj, unicode):
+    if isinstance(obj, str):
         obj = obj.encode(outputencoding)
     strobj = str(obj) + ("\n" if linefeed else "")
     outfd.write(strobj)
@@ -1341,7 +1341,7 @@ class _ExtendedNetworkCookieJar(QNetworkCookieJar):
         def str2bool(value):
             return {"TRUE": True, "FALSE": False}[value]
         def get_cookie(line):
-            fields = map(str.strip, line.split("\t"))
+            fields = list(map(str.strip, line.split("\t")))
             if len(fields) != 7:
                 return
             domain, domain_flag, path, is_secure, expiration, name, value = fields
@@ -1353,6 +1353,6 @@ class _ExtendedNetworkCookieJar(QNetworkCookieJar):
             return cookie
         cookies = [get_cookie(line) for line in string_cookies.splitlines()
           if line.strip() and not line.strip().startswith("#")]
-        self.setAllCookies(filter(bool, cookies))
+        self.setAllCookies(list(filter(bool, cookies)))
 
 

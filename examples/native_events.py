@@ -19,10 +19,10 @@ br.show()
 
 br.wk_fill('input[id=term]', 'spynner') 
 br.native_click('input[id=submit]', offsetx=5, offsety=5)
-print "Saw the mouse on the logo move & click on the search input"
+print("Saw the mouse on the logo move & click on the search input")
 sleep(3)
-print "press any key"
-raw_input()
+print("press any key")
+input()
 
 br.sendText('input[id=term]', 'spynner') 
 #print "Noticed spynner in the input ?"    vim:set et sts=4 ts=4 tw=80:

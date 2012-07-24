@@ -12,6 +12,6 @@ browser.click("a[class=l]:first")
 d = pyquery.PyQuery(browser.html)
 d.make_links_absolute(base_url=browser.url)
 href = d('a:last').attr('href')
-print href
-print len(browser.download(href))
+print(href)
+print(len(browser.download(href)))
 browser.browse()

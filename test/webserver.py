@@ -19,7 +19,7 @@ import re
 import cgi
 import base64
 
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 class Handler(BaseHTTPRequestHandler):
 
@@ -32,7 +32,7 @@ class Handler(BaseHTTPRequestHandler):
     def _debug_headers(self, headers):
         if self.verbose:
             for header in headers.headers:
-                print header,
+                print(header, end=' ')
             
     def do_GET(self):
         request_headers = self.headers.headers[:]
@@ -81,7 +81,7 @@ def get_server(host, port, basedir, verbose=False, protected=None):
 def main():
     basedir = os.path.join(os.path.dirname(__file__), "fixtures")
     server = get_server('', 8081, basedir, True, ("/protected.html",))
-    print 'started HTTP server'
+    print('started HTTP server')
     server.serve_forever()
 
 if __name__ == '__main__':
