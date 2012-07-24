@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Copyright (c) Arnau Sanchez <tokland@gmail.com>
 
@@ -18,8 +18,8 @@ from setuptools import setup, find_packages
 import os
 from distutils.cmd import Command
 
-version = '1.10'
-url = "https://github.com/kiorky/spynner"
+version = '1.10-dev'
+url = "https://github.com/darkfeline/spynner"
 
 class gen_doc(Command):
     """Generate the HTML API documentation using epydoc
@@ -53,7 +53,7 @@ setup(
     name="spynner",
     version=version,
     description="Programmatic web browsing module with AJAX support for Python",
-    author="Arnau Sanchez, Mathieu Le Marec-Pasquet",
+    author="Arnau Sanchez, Mathieu Le Marec-Pasquet, Allen Li",
     author_email="tokland@gmail.com, kiorky@cryptelium.net",
     url=url,
     packages = find_packages('src'),
