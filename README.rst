@@ -28,8 +28,6 @@ Authors
 Contributors
 -----------------
 
-- Leo Lou <https://github.com/l4u> 
-
 Dependencies
 ===================
 
@@ -49,7 +47,7 @@ Install
 
 * The bleeding edge version is hosted on github::
 
-    git clone https://github.com/makinacorpus/spynner.git 
+    git clone http://spynner.googlecode.com/svn/trunk/ spynner
     cd spynner
     python setup.py install
 
@@ -73,7 +71,7 @@ A basic example::
     browser.select("#esen")
     browser.wk_fill("input[name=enit]", "hola")
     browser.click("input[name=b]")
-    browser.wait_load()
+    browser.wait_page_load()
     print browser.url, browser.html
     browser.close()
 
